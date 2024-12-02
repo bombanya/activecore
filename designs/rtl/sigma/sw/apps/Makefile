@@ -26,6 +26,7 @@ bmarks = \
 	crc32 \
 	bootloader \
 	dhrystone \
+	sha256
 	#towers \
 	#vvadd \
 	#multiply \

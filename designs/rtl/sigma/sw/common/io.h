@@ -9,5 +9,7 @@
 #define io_buf_int        (*(volatile int (*)[IO_BUF_INT_LENGTH])(IO_BUF_ADDR))
 #define io_buf_ushort     (*(volatile unsigned short (*)[IO_BUF_INT_LENGTH*2])(IO_BUF_ADDR))
 #define io_buf_short      (*(volatile short (*)[IO_BUF_INT_LENGTH*2])(IO_BUF_ADDR))
+#define io_buf_uchar      (*(volatile unsigned char (*)[IO_BUF_INT_LENGTH*4])(IO_BUF_ADDR))
+#define io_buf_char       (*(volatile char (*)[IO_BUF_INT_LENGTH*4])(IO_BUF_ADDR))     
 
 #endif // SIGMA_IO_H
