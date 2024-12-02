@@ -98,15 +98,37 @@ udm #(
 
 localparam CSR_LED_ADDR         = 32'h80000000;
 localparam CSR_SW_ADDR          = 32'h80000004;
+localparam SHA_ADDR_BEGIN       = 32'h80000040;
+localparam SHA_ADDR_END         = 32'h80000060;
 
 logic [31:0] gpio_bo_reg;
 assign gpio_bo = gpio_bo_reg;
 logic [31:0] gpio_bi_reg;
 always @(posedge clk_i) gpio_bi_reg <= gpio_bi;
 
-assign xif.ack = xif.req;   // xif always ready to accept request
+//assign xif.ack = xif.req;   // xif always ready to accept request
 logic csr_resp;
 logic [31:0] csr_rdata;
+
+wire sha_req = (xif.addr >= SHA_ADDR_BEGIN && xif.addr <= SHA_ADDR_END);
+wire sha_ack_o;
+wire sha_ack = !sha_req || sha_ack_o;
+wire sha_resp;
+wire [31:0] sha_rdata;
+
+assign xif.ack = sha_ack;
+
+sha_xif sha(
+    .clk_i(clk_i),
+	.rst_i(srst),
+	.sha_req_i(sha_req),
+    .sha_ack_o(sha_ack_o),
+    .sha_addr_i((xif.addr >> 2) & 4'hf),
+    .sha_we_i(xif.we),
+    .sha_wdata_i(xif.wdata),
+    .sha_resp_o(sha_resp),
+    .sha_rdata_o(sha_rdata)
+);
 
 // bus request
 always @(posedge clk_i)
@@ -114,7 +136,10 @@ always @(posedge clk_i)
     
     csr_resp <= 1'b0;
     
-    if (xif.req && xif.ack)
+    if (sha_resp) begin
+        csr_resp <= 1;
+        csr_rdata <= sha_rdata;
+    end else if (xif.req && xif.ack)
         begin
         
         if (xif.we)     // writing
