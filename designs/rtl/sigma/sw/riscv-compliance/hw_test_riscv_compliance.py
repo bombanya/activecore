@@ -20,11 +20,11 @@ def hw_test_riscv_compliance_template(sigma, instr_name, ref_directory):
     verify_data = []
     
     while True:
-    	verify_dataword = f.readline()
-    	if (verify_dataword):
-    		verify_data.append(int(verify_dataword, 16))
-    	else:
-    		break
+        verify_dataword = f.readline()
+        if (verify_dataword):
+            verify_data.append(int(verify_dataword, 16))
+        else:
+            break
     
     return sigma.hw_test_generic(sigma, instr_name, "riscv-compliance/" + instr_name + "-01.riscv", 0.1, verify_data)
 
