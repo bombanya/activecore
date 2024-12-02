@@ -37,7 +37,7 @@ always @ (posedge clk)
 integer File_ID, Rd_Status;
 reg [7:0] File_Rdata [0 : (mem_size * (dat_width / 8)) - 1] ;
 integer File_ptr, header_idx;
-integer e_machine, e_phnum, p_offset, p_vaddr, p_filesz, elf_param;
+integer e_machine, e_phnum, p_offset, p_vaddr, p_filesz, elf_param, p_type;
 integer bytes_in_word, load_byte_counter;
 integer ram_ptr, wrword_byte_counter;
 reg [dat_width-1:0] wrword;
@@ -74,8 +74,8 @@ begin
             // parsing program header
             $display("---- HEADER: %0d ----", header_idx);
             
-            elf_param = File_Rdata[File_ptr] + (File_Rdata[File_ptr+1] << 8) + (File_Rdata[File_ptr+2] << 16) + (File_Rdata[File_ptr+3] << 24);
-            $display("p_type: 0x%x", elf_param);
+            p_type = File_Rdata[File_ptr] + (File_Rdata[File_ptr+1] << 8) + (File_Rdata[File_ptr+2] << 16) + (File_Rdata[File_ptr+3] << 24);
+            $display("p_type: 0x%x", p_type);
             File_ptr = File_ptr + 4;
             
             p_offset = File_Rdata[File_ptr] + (File_Rdata[File_ptr+1] << 8) + (File_Rdata[File_ptr+2] << 16) + (File_Rdata[File_ptr+3] << 24);
@@ -107,16 +107,18 @@ begin
             File_ptr = File_ptr + 4;
             
             // loading segment to memory
-            bytes_in_word = dat_width / 8;
-            for (load_byte_counter = 0; load_byte_counter < p_filesz; load_byte_counter = load_byte_counter + bytes_in_word)
-                begin
-                wrword = 0;
-                for (wrword_byte_counter = 0; wrword_byte_counter < bytes_in_word; wrword_byte_counter = wrword_byte_counter + 1)
+            if (p_type == 1) begin
+                bytes_in_word = dat_width / 8;
+                for (load_byte_counter = 0; load_byte_counter < p_filesz; load_byte_counter = load_byte_counter + bytes_in_word)
                     begin
-                    wrword = {File_Rdata[p_offset + load_byte_counter + wrword_byte_counter], wrword[dat_width-1:8]};
+                    wrword = 0;
+                    for (wrword_byte_counter = 0; wrword_byte_counter < bytes_in_word; wrword_byte_counter = wrword_byte_counter + 1)
+                        begin
+                        wrword = {File_Rdata[p_offset + load_byte_counter + wrword_byte_counter], wrword[dat_width-1:8]};
+                        end
+                    ram_ptr = (p_vaddr + load_byte_counter) / bytes_in_word;
+                    ram[ram_ptr] = wrword;
                     end
-                ram_ptr = (p_vaddr + load_byte_counter) / bytes_in_word;
-                ram[ram_ptr] = wrword;
                 end
             end
         $display("##################################\n");
