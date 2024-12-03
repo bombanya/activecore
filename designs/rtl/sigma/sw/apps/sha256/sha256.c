@@ -1,10 +1,6 @@
 #include "sha256.h"
 #include "sha_xif.h"
 
-#define ROTRIGHT(a, b) (((a) >> (b)) | ((a) << (32 - (b))))
-#define SIG0(x) (ROTRIGHT(x, 7) ^ ROTRIGHT(x, 18) ^ ((x) >> 3))
-#define SIG1(x) (ROTRIGHT(x, 17) ^ ROTRIGHT(x, 19) ^ ((x) >> 10))
-
 static uint32_t m[64];
 static uint32_t datalen;
 static uint32_t bitlen;
@@ -23,7 +19,7 @@ static void sha256_consume_byte(uint8_t data)
     {
         for (int i = 16; i < 64; ++i)
         {
-            m[i] = SIG1(m[i - 2]) + m[i - 7] + SIG0(m[i - 15]) + m[i - 16];
+            m[i] = sig(m[i - 2], 1) + m[i - 7] + sig(m[i - 15], 0) + m[i - 16];
             sha_xif_push_new_bytes(m[i]);
         }
     }
